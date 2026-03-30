@@ -15,3 +15,17 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# Java
+target/
+*.log
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
