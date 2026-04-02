@@ -1,3 +1,33 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: api-gateway
+
+  cloud:
+    gateway:
+#      routes:
+#        - id: test-route
+#          uri: https://httpbin.org
+#          predicates:
+#            - Path=/test/**
+      routes:
+        - id: google-route
+          uri: https://www.google.com
+          predicates:
+            - Path=/test/**
+
+        - id: eureka-route
+          uri: http://localhost:8761/hello
+          predicates:
+            - Path=/hello/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
