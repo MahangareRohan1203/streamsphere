@@ -85,6 +85,12 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
+
+<!--		LOCALEDATE TIME ERROR-->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>

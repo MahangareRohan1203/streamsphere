@@ -1,4 +1,4 @@
-package com.streamsphere.config;
+package com.streamspehere.config;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -11,22 +11,12 @@ public class JwtUtil {
     
     private final String SECRET = "thisismysecuretkfjsdlkfjsdkfjsdklfjsd;fkljfklsdasdfksdjfklsdfsdkl;fjksdfj;sdfaslfdskdfj";
     
-    
-    public String generateRefreshToken(String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)) // 7 days
-                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
-                .compact();
-    }
-    
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 10)) // 10 seconds
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
                 .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
                 .compact();
     }

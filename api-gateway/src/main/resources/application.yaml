@@ -5,23 +5,40 @@ spring:
   application:
     name: api-gateway
 
-  cloud:
-    gateway:
+#  cloud:
+#    gateway:
 #      routes:
 #        - id: test-route
 #          uri: https://httpbin.org
 #          predicates:
 #            - Path=/test/**
+#      routes:
+#        - id: google-route
+#          uri: https://www.google.com
+#          predicates:
+#            - Path=/test/**
+#
+#        - id: eureka-route
+#          uri: http://localhost:8761/hello
+#          predicates:
+#            - Path=/hello/**
+#
+#        - id: auth-route
+#          uri: http://localhost:8761/hello
+#          predicates:
+#            - Path=/hello/**
+  cloud:
+    gateway:
       routes:
-        - id: google-route
-          uri: https://www.google.com
+        - id: auth-service
+          uri: lb://auth-service
           predicates:
-            - Path=/test/**
+            - Path=/auth/**
 
-        - id: eureka-route
-          uri: http://localhost:8761/hello
+        - id: test-service
+          uri: lb://auth-service
           predicates:
-            - Path=/hello/**
+            - Path=/api/**
 
 eureka:
   client:
@@ -31,3 +48,13 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+
+
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+  pattern:
+    level: "%5p [${spring.application.name:},%X{X-Correlation-ID}]"
