@@ -17,13 +17,19 @@ import java.time.LocalDateTime;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+//    @Bean
+//    public ObjectMapper objectMapper() {
+//        return JsonMapper.builder()
+//                .addModule(new JavaTimeModule())
+//                .build();
+//    }
+    
     @Bean
     public ObjectMapper objectMapper() {
-        return JsonMapper.builder()
-                .addModule(new JavaTimeModule())
-                .build();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
     }
-    
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
     
@@ -33,6 +39,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers(
+//                                "/v3/api-docs/**",
+//                                "/swagger-ui/**",
+//                                "/swagger-ui.html"
+//                        ).permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
