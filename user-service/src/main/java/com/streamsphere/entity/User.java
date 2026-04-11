@@ -1,4 +1,4 @@
-package com.streamspehere.entity;
+package com.streamsphere.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -19,6 +19,9 @@ public class User {
     
     @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false)
+    private String password;
     
     @Column(nullable = false)
     private String role;

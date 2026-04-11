@@ -28,3 +28,8 @@ Microservices-based architecture with API Gateway, Auth Service, Video Service, 
 - [] Spring Cache + Redis
 - [] validation
 - 
+
+
+
+## 
+-[] After adding the spring security in api gateway that public url not able to configure

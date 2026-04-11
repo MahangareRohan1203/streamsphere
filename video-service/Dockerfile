@@ -1,0 +1,12 @@
+FROM eclipse-temurin:17-jdk-alpine as build
+WORKDIR /app
+COPY . .
+RUN ./mvnw clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+# Install ffmpeg for video processing
+RUN apk add --no-cache ffmpeg
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8083
+ENTRYPOINT ["java", "-jar", "app.jar"]

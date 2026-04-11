@@ -1,6 +1,6 @@
-package com.streamspehere.repository;
+package com.streamsphere.repository;
 
-import com.streamspehere.entity.User;
+import com.streamsphere.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

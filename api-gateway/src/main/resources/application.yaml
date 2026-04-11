@@ -35,10 +35,15 @@ spring:
           predicates:
             - Path=/auth/**
 
-        - id: test-service
-          uri: lb://auth-service
+        - id: user-service
+          uri: lb://user-service
           predicates:
-            - Path=/api/**
+            - Path=/users/**
+
+        - id: video-service
+          uri: lb://video-service
+          predicates:
+            - Path=/api/videos/**
 
 eureka:
   client:
