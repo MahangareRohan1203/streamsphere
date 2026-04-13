@@ -1,5 +1,6 @@
 package com.streamsphere.filters;
 
+import com.streamsphere.components.GatewayConstants;
 import com.streamsphere.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -47,8 +48,8 @@ public class JwtGatewayFilter implements GlobalFilter {
             
             // Mutate request to add user info headers for downstream services
             ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .header("X-User-Name", username)
-                    .header("X-User-Role", role)
+                    .header(GatewayConstants.USER_NAME_HEADER, username)
+                    .header(GatewayConstants.USER_ROLE_HEADER, role)
                     .build();
             
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
@@ -65,12 +66,14 @@ public class JwtGatewayFilter implements GlobalFilter {
         HttpMethod method = exchange.getRequest().getMethod();
 
         // 1. Auth, Eureka, Actuator are always public
-        if (path.contains("/auth") || path.contains("/eureka") || path.contains("/actuator")) {
+        if (path.contains(GatewayConstants.AUTH_PATH_PREFIX) || 
+            path.contains(GatewayConstants.EUREKA_PATH_PREFIX) || 
+            path.contains(GatewayConstants.ACTUATOR_PATH_PREFIX)) {
             return true;
         }
 
         // 2. User Registration (POST /users) is public
-        if (path.equals("/users") && HttpMethod.POST.equals(method)) {
+        if (path.equals(GatewayConstants.USERS_PATH) && HttpMethod.POST.equals(method)) {
             return true;
         }
 

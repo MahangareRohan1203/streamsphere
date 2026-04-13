@@ -162,6 +162,71 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Video Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/api/videos/1",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"api",
+								"videos",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stream Video",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gateway_url}}/api/videos/1/stream?resolution=720p",
+							"host": [
+								"{{gateway_url}}"
+							],
+							"path": [
+								"api",
+								"videos",
+								"1",
+								"stream"
+							],
+							"query": [
+								{
+									"key": "resolution",
+									"value": "720p"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

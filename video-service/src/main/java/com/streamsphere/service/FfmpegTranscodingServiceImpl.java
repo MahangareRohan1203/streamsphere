@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class FfmpegService {
+public class FfmpegTranscodingServiceImpl implements TranscodingService {
 
     public File transcode(File inputFile, String resolution) throws Exception {
         String outputFileName = inputFile.getParent() + "/" + resolution + "_" + inputFile.getName();

@@ -30,7 +30,7 @@ class VideoServiceTest {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @InjectMocks
-    private VideoService videoService;
+    private VideoServiceImpl videoService;
 
     private MockMultipartFile mockFile;
 

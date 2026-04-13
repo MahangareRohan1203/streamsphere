@@ -25,7 +25,7 @@ public class VideoTranscodingListener {
     private final VideoRepository videoRepository;
     private final VideoResolutionRepository videoResolutionRepository;
     private final StorageService storageService;
-    private final FfmpegService ffmpegService;
+    private final TranscodingService transcodingService;
 
     private static final String RAW_BUCKET = "raw-videos";
     private static final String PROCESSED_BUCKET = "processed-videos";
@@ -51,7 +51,7 @@ public class VideoTranscodingListener {
 
             for (String resolution : resolutions) {
                 log.info("Transcoding video {} to {}", video.getId(), resolution);
-                File transcodedFile = ffmpegService.transcode(tempFile, resolution);
+                File transcodedFile = transcodingService.transcode(tempFile, resolution);
 
                 String objectName = resolution + "_" + video.getOriginalFileName();
                 String videoUrl = storageService.uploadFile(PROCESSED_BUCKET, objectName, transcodedFile);

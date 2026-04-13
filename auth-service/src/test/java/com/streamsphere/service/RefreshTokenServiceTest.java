@@ -31,7 +31,7 @@ class RefreshTokenServiceTest {
     private ObjectMapper objectMapper;
 
     @InjectMocks
-    private RefreshTokenService refreshTokenService;
+    private RefreshTokenServiceImpl refreshTokenService;
 
     @BeforeEach
     void setUp() {
