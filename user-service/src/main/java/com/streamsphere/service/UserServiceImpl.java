@@ -34,7 +34,11 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(request.username());
         user.setEmail(request.email());
-        user.setRole(request.role());
+        
+        // Default to USER role if not provided
+        String role = (request.role() == null || request.role().isEmpty()) ? "USER" : request.role();
+        user.setRole(role);
+        
         user.setPassword(passwordEncoder.encode(request.password()));
         
         return userRepository.save(user);

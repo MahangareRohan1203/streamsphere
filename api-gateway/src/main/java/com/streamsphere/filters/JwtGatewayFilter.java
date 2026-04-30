@@ -22,48 +22,53 @@ public class JwtGatewayFilter implements GlobalFilter {
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        
-        // Check if endpoint is public
-        if (isPublicEndpoint(exchange)) {
-            return chain.filter(exchange);
-        }
-        
         String authHeader = exchange.getRequest()
                 .getHeaders()
                 .getFirst("Authorization");
         
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for path: {}", exchange.getRequest().getURI().getPath());
+        boolean isPublic = isPublicEndpoint(exchange);
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                String username = jwtUtil.extractUsername(token);
+                String role = jwtUtil.extractRole(token);
+                
+                log.info("Gateway extracted user: {}, role: {} for path: {}", username, role, exchange.getRequest().getURI().getPath());
+                
+                // Mutate request to add user info headers for downstream services
+                // AND COMPLETELY REMOVE Authorization header so downstream services don't try to re-validate
+                ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                        .header(GatewayConstants.USER_NAME_HEADER, username)
+                        .header(GatewayConstants.USER_ROLE_HEADER, role)
+                        .headers(httpHeaders -> httpHeaders.remove("Authorization"))
+                        .build();
+                
+                return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            } catch (Exception e) {
+                log.error("JWT validation failed: {}", e.getMessage());
+                if (!isPublic) {
+                    exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                    return exchange.getResponse().setComplete();
+                }
+            }
+        } else if (!isPublic) {
+            log.warn("Missing or invalid Authorization header for non-public path: {}", exchange.getRequest().getURI().getPath());
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
         
-        String token = authHeader.substring(7);
-        
-        try {
-            String username = jwtUtil.extractUsername(token);
-            String role = jwtUtil.extractRole(token);
-            
-            log.info("Gateway extracted user: {}, role: {} for path: {}", username, role, exchange.getRequest().getURI().getPath());
-            
-            // Mutate request to add user info headers for downstream services
-            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .header(GatewayConstants.USER_NAME_HEADER, username)
-                    .header(GatewayConstants.USER_ROLE_HEADER, role)
-                    .build();
-            
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
-            
-        } catch (Exception e) {
-            log.error("JWT validation failed: {}", e.getMessage());
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
-        }
+        return chain.filter(exchange);
     }
 
     private boolean isPublicEndpoint(ServerWebExchange exchange) {
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
+
+        // Always allow OPTIONS requests for CORS preflight
+        if (HttpMethod.OPTIONS.equals(method)) {
+            return true;
+        }
 
         // 1. Auth, Eureka, Actuator are always public
         if (path.contains(GatewayConstants.AUTH_PATH_PREFIX) || 
@@ -73,7 +78,12 @@ public class JwtGatewayFilter implements GlobalFilter {
         }
 
         // 2. User Registration (POST /users) is public
-        if (path.equals(GatewayConstants.USERS_PATH) && HttpMethod.POST.equals(method)) {
+        if (path.startsWith(GatewayConstants.USERS_PATH) && HttpMethod.POST.equals(method)) {
+            return true;
+        }
+
+        // 3. Video Discovery (GET /api/videos/**) is public
+        if (path.startsWith("/api/videos") && HttpMethod.GET.equals(method)) {
             return true;
         }
 

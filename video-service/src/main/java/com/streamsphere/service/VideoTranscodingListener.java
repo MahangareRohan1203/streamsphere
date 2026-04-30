@@ -62,6 +62,7 @@ public class VideoTranscodingListener {
                         .videoUrl(videoUrl)
                         .build();
 
+                video.getResolutions().add(res);
                 videoResolutionRepository.save(res);
                 transcodedFile.delete();
             }

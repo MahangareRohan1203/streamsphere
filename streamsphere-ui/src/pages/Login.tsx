@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useLoginMutation } from '../features/auth/authApi';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../features/auth/authSlice';
+import Logo from '../components/Logo';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -23,12 +24,18 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-black bg-opacity-50">
-      {/* Background Image Placeholder */}
-      <div className="absolute inset-0 z-0 bg-[url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c2-10f0-4540-a110-387422ba3a93/61da7d05-9888-4d38-8d10-fcddfa09fc9a/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_large.jpg')] bg-cover opacity-50"></div>
+    <div className="relative min-h-screen flex items-center justify-center bg-background overflow-hidden">
+      {/* Dynamic Background Mesh */}
+      <div className="absolute inset-0 z-0 opacity-30">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/20 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]"></div>
+      </div>
       
-      <div className="relative z-10 w-full max-w-md p-8 bg-black bg-opacity-75 rounded-md shadow-xl border border-gray-800">
-        <h2 className="text-3xl font-bold mb-8 text-white">Sign In</h2>
+      <div className="relative z-10 w-full max-w-md p-10 bg-black/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/5">
+        <div className="flex justify-center mb-10 scale-110">
+          <Logo />
+        </div>
+        <h2 className="text-3xl font-black mb-8 text-white tracking-tight uppercase italic text-center">Sign In</h2>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

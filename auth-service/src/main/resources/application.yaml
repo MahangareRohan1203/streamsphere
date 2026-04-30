@@ -1,6 +1,9 @@
 server:
-  port:
-    8081
+  port: 8081
+
+app:
+  cors:
+    allowed-origins: "http://localhost:5173"
 
 spring:
   application:
