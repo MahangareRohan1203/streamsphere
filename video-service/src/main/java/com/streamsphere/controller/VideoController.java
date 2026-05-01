@@ -5,9 +5,13 @@ import com.streamsphere.dto.VideoMapper;
 import com.streamsphere.dto.VideoResponse;
 import com.streamsphere.entity.Video;
 import com.streamsphere.entity.VideoResolution;
+import com.streamsphere.entity.VideoStatus;
 import com.streamsphere.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +33,15 @@ public class VideoController {
     private final VideoService videoService;
     private final VideoMapper videoMapper;
 
+    @GetMapping
+    public ResponseEntity<Page<VideoResponse>> getAllVideos(
+            @RequestParam(value = "status", required = false) VideoStatus status,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        
+        Page<Video> videoPage = videoService.getAllVideos(status, pageable);
+        return ResponseEntity.ok(videoPage.map(videoMapper::toResponse));
+    }
+
     @PostMapping("/upload")
     public ResponseEntity<VideoResponse> uploadVideo(
             @RequestHeader(value = "X-User-Name", required = false) String username,
@@ -39,7 +52,7 @@ public class VideoController {
         
         log.info("Received upload request. User: {}, Role: {}, Title: {}", username, role, title);
 
-        // Example of role-based check in the controller
+        // Strict role check: Only ADMIN can upload
         if (!"ADMIN".equalsIgnoreCase(role)) {
             log.warn("Access denied for user {} with role {}. ADMIN role required.", username, role);
             return ResponseEntity.status(403).build();
@@ -78,13 +91,12 @@ public class VideoController {
 
         StreamingResponseBody responseBody = outputStream -> {
             try (InputStream inputStream = videoService.streamVideo(finalBucket, finalFileName)) {
-                byte[] buffer = new String("").getBytes(); // Placeholder for actual buffer
-                // Note: In a real app, use a proper buffer size like 8192
-                byte[] realBuffer = new byte[8192];
+                byte[] buffer = new byte[8192];
                 int bytesRead;
-                while ((bytesRead = inputStream.read(realBuffer)) != -1) {
-                    outputStream.write(realBuffer, 0, bytesRead);
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
                 }
+                outputStream.flush();
             } catch (Exception e) {
                 log.error("Error streaming video: {}", e.getMessage());
             }

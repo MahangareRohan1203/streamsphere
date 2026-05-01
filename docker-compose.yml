@@ -54,7 +54,10 @@ services:
       - "6379:6379"
 
   eureka-server:
-    build: ./eureka-server
+    build:
+      context: ./eureka-server
+      network: host
+    image: eureka-server
     container_name: eureka-server
     ports:
       - "${EUREKA_PORT}:${EUREKA_PORT}"
@@ -66,7 +69,10 @@ services:
       start_period: 30s
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: ./api-gateway
+      network: host
+    image: api-gateway
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -77,7 +83,10 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_ZONE}
 
   auth-service:
-    build: ./auth-service
+    build:
+      context: ./auth-service
+      network: host
+    image: auth-service
     container_name: auth-service
     ports:
       - "8081:8081"
@@ -91,7 +100,10 @@ services:
       SPRING_DATA_REDIS_HOST: redis
 
   user-service:
-    build: ./user-service
+    build:
+      context: ./user-service
+      network: host
+    image: user-service
     container_name: user-service
     ports:
       - "8082:8082"
@@ -113,7 +125,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
 
   video-service:
-    build: ./video-service
+    build:
+      context: ./video-service
+      network: host
+    image: video-service
     container_name: video-service
     ports:
       - "8083:8083"

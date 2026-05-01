@@ -6,6 +6,8 @@ import com.streamsphere.entity.VideoStatus;
 import com.streamsphere.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,9 +28,18 @@ public class VideoServiceImpl implements VideoService {
     private static final String PROCESSED_BUCKET = "processed-videos";
     private static final String TOPIC = "video-events";
 
+    @Override
     public Video getVideo(Long id) {
         return videoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
+    }
+
+    @Override
+    public Page<Video> getAllVideos(VideoStatus status, Pageable pageable) {
+        if (status != null) {
+            return videoRepository.findByStatus(status, pageable);
+        }
+        return videoRepository.findAll(pageable);
     }
 
     public InputStream streamVideo(String bucket, String fileName) throws Exception {

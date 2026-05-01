@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useUploadVideoMutation } from '../features/videos/videoApi';
 import Navbar from '../components/Navbar';
 import { Upload as UploadIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -8,18 +7,39 @@ const Upload = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [uploadVideo, { isLoading, isSuccess, isError, error }] = useUploadVideoMutation();
-  const navigate = useNavigate();
+  const [uploadVideo, { isLoading, isSuccess, isError }] = useUploadVideoMutation();
+
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+    setValidationError(null);
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      
+      // Basic size check (50MB)
+      if (selectedFile.size > 50 * 1024 * 1024) {
+        setValidationError('File size exceeds 50MB limit.');
+        return;
+      }
+
+      // Basic type check
+      const allowedTypes = ['video/mp4', 'video/x-matroska', 'video/mkv'];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setValidationError('Only MP4 and MKV formats are supported.');
+        return;
+      }
+
+      setFile(selectedFile);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      setValidationError('Please select a video file.');
+      return;
+    }
+    if (validationError) return;
 
     const formData = new FormData();
     formData.append('title', title);
@@ -28,7 +48,9 @@ const Upload = () => {
 
     try {
       await uploadVideo(formData).unwrap();
-      // Optionally reset form or wait for success state
+      setTitle('');
+      setDescription('');
+      setFile(null);
     } catch (err) {
       console.error('Failed to upload video:', err);
     }
@@ -43,17 +65,17 @@ const Upload = () => {
           <h2 className="text-3xl font-bold">Upload Video</h2>
         </div>
 
-        {isSuccess && (
+        {(isSuccess) && (
           <div className="mb-6 p-4 bg-green-900 bg-opacity-30 border border-green-500 rounded-md flex items-center gap-3 text-green-400">
             <CheckCircle2 size={20} />
             <p>Video uploaded successfully! It is now being processed.</p>
           </div>
         )}
 
-        {isError && (
+        {(isError || validationError) && (
           <div className="mb-6 p-4 bg-red-900 bg-opacity-30 border border-red-500 rounded-md flex items-center gap-3 text-red-400">
             <AlertCircle size={20} />
-            <p>Upload failed. Please check the file size and your connection.</p>
+            <p>{validationError || 'Upload failed. Please check the file size and your connection.'}</p>
           </div>
         )}
 
