@@ -24,6 +24,18 @@ export interface RegisterResponse {
   email: string;
 }
 
+export interface UserProfileResponse {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  currentTier: string;
+}
+
+export interface SubscribeRequest {
+  tier: string;
+}
+
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
@@ -40,7 +52,20 @@ export const authApi = api.injectEndpoints({
         body: user,
       }),
     }),
+    getUserProfile: builder.query<UserProfileResponse, string>({
+      query: (username) => `/users/${username}`,
+      providesTags: ['User'],
+    }),
+    subscribe: builder.mutation<any, { userId: number; tier: string }>({
+      query: ({ userId, tier }) => ({
+        url: `/users/${userId}/subscriptions`,
+        method: 'POST',
+        body: { tier },
+      }),
+      // Invalidate User so profile query refetches
+      invalidatesTags: ['User'],
+    }),
   }),
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation, useGetUserProfileQuery, useSubscribeMutation } = authApi;

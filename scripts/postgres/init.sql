@@ -5,7 +5,19 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     role VARCHAR(50) NOT NULL,
+    current_tier VARCHAR(20) DEFAULT 'FREE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    tier VARCHAR(20) NOT NULL,
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Initialize Video Service Schema
@@ -16,6 +28,7 @@ CREATE TABLE IF NOT EXISTS videos (
     original_file_name VARCHAR(255) NOT NULL,
     raw_video_url VARCHAR(500) NOT NULL,
     status VARCHAR(50) NOT NULL, -- UPLOADED, PROCESSING, COMPLETED, FAILED
+    minimum_subscription_tier VARCHAR(20) DEFAULT 'FREE',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -28,6 +41,6 @@ CREATE TABLE IF NOT EXISTS video_resolutions (
 );
 
 -- Optional: Seed an Admin User (password: password)
-INSERT INTO users (username, password, email, role) 
-VALUES ('admin', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOnu', 'admin@streamsphere.com', 'ADMIN')
+INSERT INTO users (username, password, email, role, current_tier) 
+VALUES ('admin', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOnu', 'admin@streamsphere.com', 'ADMIN', 'GOLD')
 ON CONFLICT (username) DO NOTHING;

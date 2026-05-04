@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetVideoByIdQuery, useGetVideosQuery } from '../features/videos/videoApi';
 import Navbar from '../components/Navbar';
-import VideoCard from '../components/VideoCard';
-import { Loader2, AlertCircle, Calendar, FileVideo, ChevronLeft } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, FileVideo, ChevronLeft, Info } from 'lucide-react';
 
 const Watch: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +14,8 @@ const Watch: React.FC = () => {
     status: 'COMPLETED',
     size: 8 
   });
+
+  const [selectedResolution, setSelectedResolution] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(undefined, { 
@@ -56,10 +57,8 @@ const Watch: React.FC = () => {
     );
   }
 
-  // Get the highest resolution URL or fallback to raw
-  const streamUrl = video.resolutions && video.resolutions.length > 0 
-    ? `http://localhost:8080/api/videos/${video.id}/stream?resolution=${video.resolutions[video.resolutions.length - 1].resolution}`
-    : `http://localhost:8080/api/videos/${video.id}/stream`;
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  const streamUrl = `${apiBaseUrl}/api/videos/${id}/stream${selectedResolution ? `?resolution=${selectedResolution}` : ''}`;
 
   return (
     <div className="min-h-screen bg-background text-white">
@@ -71,9 +70,12 @@ const Watch: React.FC = () => {
           {/* Video Player Container */}
           <div className="aspect-video bg-black rounded-sm overflow-hidden border border-white/5 shadow-2xl relative group">
             <video 
+              key={streamUrl}
               controls 
+              autoPlay
+              crossOrigin="anonymous"
               className="w-full h-full"
-              poster="/hero.png" // Using existing hero image as a placeholder poster
+              poster="/hero.png"
               src={streamUrl}
             >
               Your browser does not support the video tag.
@@ -99,9 +101,47 @@ const Watch: React.FC = () => {
                   <span className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-sm">
                     {video.status}
                   </span>
+                  <span className="px-2 py-0.5 bg-surface text-gray-400 border border-white/5 rounded-sm">
+                    {video.minimumSubscriptionTier}
+                  </span>
                 </div>
               </div>
             </div>
+
+            {/* Resolutions Section */}
+            {video.resolutions && video.resolutions.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-sm font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-white/40">
+                  <Info size={16} className="text-primary" />
+                  Available Resolutions
+                </h2>
+                <div className="flex gap-4 flex-wrap">
+                  <button 
+                    onClick={() => setSelectedResolution(null)}
+                    className={`px-4 py-2 rounded-sm border text-[10px] font-black uppercase tracking-widest transition ${
+                      selectedResolution === null 
+                        ? 'bg-primary border-primary text-white' 
+                        : 'bg-white/5 hover:bg-white/10 border-white/10'
+                    }`}
+                  >
+                    Original
+                  </button>
+                  {video.resolutions.map((res) => (
+                    <button 
+                      key={res.resolution}
+                      onClick={() => setSelectedResolution(res.resolution)}
+                      className={`px-4 py-2 rounded-sm border text-[10px] font-black uppercase tracking-widest transition ${
+                        selectedResolution === res.resolution 
+                          ? 'bg-primary border-primary text-white' 
+                          : 'bg-white/5 hover:bg-white/10 border-white/10'
+                      }`}
+                    >
+                      {res.resolution}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-8 p-6 bg-surface/50 border border-white/5 rounded-sm">
               <h3 className="text-sm font-black uppercase tracking-widest mb-4 text-white/40">Description</h3>

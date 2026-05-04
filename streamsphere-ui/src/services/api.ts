@@ -1,10 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../app/store';
 
-// Senior SE Tip: In development, we use Vite Proxy to avoid CORS issues.
-// Empty string means requests go to the same origin (localhost:5173),
-// and Vite proxies them to the backend (localhost:8080).
-const BASE_URL = '';
+// Define the base URL for our Spring Cloud API Gateway
+// Senior SE Tip: In development, we use Vite Proxy to avoid CORS issues if VITE_API_BASE_URL is empty.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export const api = createApi({
   reducerPath: 'api',

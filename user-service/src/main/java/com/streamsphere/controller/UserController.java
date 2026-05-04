@@ -24,6 +24,12 @@ public class UserController {
         return userMapper.toResponse(user, false); // PUBLIC: No password
     }
     
+    @GetMapping("/{username}")
+    public UserResponse getUser(@PathVariable String username) {
+        User user = userService.getUserByUsername(username);
+        return userMapper.toResponse(user, false); // PUBLIC: No password
+    }
+    
     @GetMapping("/internal/{username}")
     public UserResponse getInternalUser(@PathVariable String username) {
         User user = userService.getUserByUsername(username);

@@ -1,5 +1,6 @@
 package com.streamsphere.dto;
 
+import com.streamsphere.entity.SubscriptionTier;
 import com.streamsphere.entity.VideoStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,5 +22,6 @@ public class VideoResponse {
     private String rawVideoUrl;
     private VideoStatus status;
     private LocalDateTime createdAt;
+    private SubscriptionTier minimumSubscriptionTier;
     private List<ResolutionResponse> resolutions;
 }

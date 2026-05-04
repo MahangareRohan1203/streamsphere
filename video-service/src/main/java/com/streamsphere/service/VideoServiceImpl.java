@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -42,10 +43,35 @@ public class VideoServiceImpl implements VideoService {
         return videoRepository.findAll(pageable);
     }
 
+    @Override
     public InputStream streamVideo(String bucket, String fileName) throws Exception {
         return storageService.downloadFile(bucket, fileName);
     }
 
+    /**
+     * Retrieves a specific byte range from the storage service.
+     * 
+     * Rationale: Efficiently supports HTTP 206 (Partial Content) by only fetching the requested
+     * bytes from S3/MinIO. This reduces bandwidth and improves latency for seeking operations
+     * in the video player.
+     * 
+     * @param bucket The S3 bucket name.
+     * @param fileName The object key in the bucket.
+     * @param offset The starting byte position.
+     * @param length The number of bytes to retrieve.
+     * @return InputStream containing the requested byte range.
+     */
+    @Override
+    public InputStream streamVideo(String bucket, String fileName, long offset, long length) throws Exception {
+        return storageService.downloadFile(bucket, fileName, offset, length);
+    }
+
+    @Override
+    public long getFileSize(String bucket, String fileName) throws Exception {
+        return storageService.getFileSize(bucket, fileName);
+    }
+
+    @Override
     public Video uploadVideo(String title, String description, MultipartFile file) throws Exception {
         String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
         String rawVideoUrl = storageService.uploadFile(RAW_BUCKET, fileName, file);

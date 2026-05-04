@@ -64,4 +64,25 @@ public class MinioStorageServiceImpl implements StorageService {
                         .build()
         );
     }
+
+    public InputStream downloadFile(String bucketName, String objectName, long offset, long length) throws Exception {
+        return minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .offset(offset)
+                        .length(length)
+                        .build()
+        );
+    }
+
+    public long getFileSize(String bucketName, String objectName) throws Exception {
+        StatObjectResponse stat = minioClient.statObject(
+                StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .build()
+        );
+        return stat.size();
+    }
 }

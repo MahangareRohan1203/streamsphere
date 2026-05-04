@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
+    private Long id;
     private String username;
     private String email;
     private String role;
+    private String currentTier;
     private String password; // Included for internal auth-service use
 }

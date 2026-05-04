@@ -51,6 +51,8 @@ const Upload = () => {
       setTitle('');
       setDescription('');
       setFile(null);
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
     } catch (err) {
       console.error('Failed to upload video:', err);
     }

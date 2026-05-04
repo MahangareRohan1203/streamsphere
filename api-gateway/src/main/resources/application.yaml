@@ -16,6 +16,23 @@ spring:
 
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - HEAD
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Content-Range
+              - Accept-Ranges
+              - Content-Length
+              - Content-Type
       routes:
         - id: auth-service
           uri: lb://auth-service
@@ -30,8 +47,8 @@ spring:
         - id: video-service
           uri: lb://video-service
           predicates:
-            - Path=/api/videos/**, /api/videos
-  
+            - Path=/api/videos/**
+
   mvc:
     throw-exception-if-no-handler-found: true
   web:
@@ -41,7 +58,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-server:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
 
 logging:
   level:

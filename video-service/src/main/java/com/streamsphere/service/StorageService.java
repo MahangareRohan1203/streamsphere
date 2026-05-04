@@ -9,4 +9,6 @@ public interface StorageService {
     String uploadFile(String bucketName, String objectName, MultipartFile file) throws Exception;
     String uploadFile(String bucketName, String objectName, File file) throws Exception;
     InputStream downloadFile(String bucketName, String objectName) throws Exception;
+    InputStream downloadFile(String bucketName, String objectName, long offset, long length) throws Exception;
+    long getFileSize(String bucketName, String objectName) throws Exception;
 }

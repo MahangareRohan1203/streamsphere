@@ -30,6 +30,7 @@ public class VideoMapper {
                 .rawVideoUrl(video.getRawVideoUrl())
                 .status(video.getStatus())
                 .createdAt(video.getCreatedAt())
+                .minimumSubscriptionTier(video.getMinimumSubscriptionTier())
                 .resolutions(resolutions)
                 .build();
     }

@@ -33,6 +33,10 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "current_tier")
+    private SubscriptionTier currentTier = SubscriptionTier.FREE;
+    
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

@@ -12,5 +12,7 @@ public interface VideoService {
     Video getVideo(Long id);
     Page<Video> getAllVideos(VideoStatus status, Pageable pageable);
     InputStream streamVideo(String bucket, String fileName) throws Exception;
+    InputStream streamVideo(String bucket, String fileName, long offset, long length) throws Exception;
+    long getFileSize(String bucket, String fileName) throws Exception;
     Video uploadVideo(String title, String description, MultipartFile file) throws Exception;
 }

@@ -61,6 +61,15 @@ public class JwtGatewayFilter implements GlobalFilter {
         return chain.filter(exchange);
     }
 
+    /**
+     * Determines if a request should bypass JWT validation.
+     * 
+     * Rationale for Video Endpoints:
+     * GET and HEAD requests to /api/videos/** are permitted without a JWT at the gateway level.
+     * This enables unauthenticated users to browse the video catalog and view thumbnails/previews.
+     * Access control for full video streaming (tier-based) is enforced downstream in the 
+     * Video Service, ensuring granular security without blocking discovery.
+     */
     private boolean isPublicEndpoint(ServerWebExchange exchange) {
         String path = exchange.getRequest().getURI().getPath();
         HttpMethod method = exchange.getRequest().getMethod();
@@ -84,6 +93,11 @@ public class JwtGatewayFilter implements GlobalFilter {
 
         // 3. Video Discovery (GET /api/videos/**) is public
         if (path.startsWith("/api/videos") && HttpMethod.GET.equals(method)) {
+            return true;
+        }
+
+        // 3. Video Listing and Streaming (GET/HEAD /api/videos/**) is public
+        if (path.startsWith("/api/videos") && (HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method))) {
             return true;
         }
 

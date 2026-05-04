@@ -17,7 +17,7 @@ const Login = () => {
     try {
       const response = await login({ username, password }).unwrap();
       dispatch(setCredentials({ user: username, token: response.accessToken }));
-      navigate('/');
+      navigate('/home');
     } catch (err) {
       console.error('Failed to login:', err);
     }

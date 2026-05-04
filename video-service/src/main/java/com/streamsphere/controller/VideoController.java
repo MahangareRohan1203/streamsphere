@@ -3,6 +3,7 @@ package com.streamsphere.controller;
 import com.streamsphere.dto.ResolutionResponse;
 import com.streamsphere.dto.VideoMapper;
 import com.streamsphere.dto.VideoResponse;
+import com.streamsphere.entity.SubscriptionTier;
 import com.streamsphere.entity.Video;
 import com.streamsphere.entity.VideoResolution;
 import com.streamsphere.entity.VideoStatus;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,15 +69,53 @@ public class VideoController {
         return ResponseEntity.ok(videoMapper.toResponse(videoService.getVideo(id)));
     }
 
+    /**
+     * High-performance video streaming endpoint supporting byte-range requests.
+     * 
+     * Rationale:
+     * 1. Access Enforcement: Trusts 'X-User-Role' injected by API Gateway to perform tier-based checks.
+     *    This ensures business-level authorization without re-validating JWTs.
+     * 2. Range Requests: Implements HTTP 206 (Partial Content) to support scrubbing, seeking,
+     *    and efficient buffering in modern video players.
+     * 3. Resolution Switching: Dynamically selects the S3 bucket and file based on requested resolution
+     *    (e.g., 720p vs raw).
+     * 
+     * @param userRole Injected from API Gateway via 'X-User-Role' header.
+     * @param rangeHeader Standard HTTP Range header (e.g., 'bytes=0-1024').
+     * @param id The video entity ID.
+     * @param resolution Optional resolution to stream (e.g., '720p').
+     */
     @GetMapping("/{id}/stream")
     public ResponseEntity<StreamingResponseBody> streamVideo(
+            @RequestHeader(value = "X-User-Role", required = false) String userRole,
+            @RequestHeader(value = "Range", required = false) String rangeHeader,
             @PathVariable Long id,
-            @RequestParam(value = "resolution", required = false) String resolution) {
+            @RequestParam(value = "resolution", required = false) String resolution) throws Exception {
         
         Video video = videoService.getVideo(id);
+        
+        // Access Enforcement: Business-level authorization logic.
+        // We compare the numeric 'weight' of the user's tier against the video's requirement.
+        SubscriptionTier requiredTier = video.getMinimumSubscriptionTier();
+        SubscriptionTier userTier = SubscriptionTier.FREE;
+        
+        if (userRole != null) {
+            try {
+                userTier = SubscriptionTier.valueOf(userRole.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Unknown user role: {}. Falling back to FREE.", userRole);
+            }
+        }
+
+        if (userTier.getWeight() < requiredTier.getWeight()) {
+            log.warn("Access denied for video {}. Required: {}, User: {}", id, requiredTier, userTier);
+            return ResponseEntity.status(403).build();
+        }
+
         String bucket = "raw-videos";
         String fileName = video.getRawVideoUrl();
 
+        // Resolution switching: Selects the processed version if available and requested.
         if (resolution != null && video.getResolutions() != null) {
             for (VideoResolution res : video.getResolutions()) {
                 if (res.getResolution().equalsIgnoreCase(resolution)) {
@@ -86,11 +126,39 @@ public class VideoController {
             }
         }
 
+        long fileSize = videoService.getFileSize(bucket, fileName);
+        long start = 0;
+        long end = fileSize - 1;
+
+        // Byte-Range Parsing: Standard HTTP/1.1 Range header implementation.
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            String[] ranges = rangeHeader.substring(6).split("-");
+            try {
+                start = Long.parseLong(ranges[0]);
+                if (ranges.length > 1) {
+                    end = Long.parseLong(ranges[1]);
+                }
+            } catch (NumberFormatException e) {
+                log.warn("Invalid range header: {}", rangeHeader);
+            }
+        }
+
+        if (start >= fileSize) {
+            return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+                    .header(HttpHeaders.CONTENT_RANGE, "bytes */" + fileSize)
+                    .build();
+        }
+
+        long contentLength = end - start + 1;
+        final long finalStart = start;
+        final long finalContentLength = contentLength;
         final String finalBucket = bucket;
         final String finalFileName = fileName;
 
+        // Streaming Response: Uses a lambda to stream content directly to the output stream.
+        // This is memory efficient as it avoids loading the entire file into memory.
         StreamingResponseBody responseBody = outputStream -> {
-            try (InputStream inputStream = videoService.streamVideo(finalBucket, finalFileName)) {
+            try (InputStream inputStream = videoService.streamVideo(finalBucket, finalFileName, finalStart, finalContentLength)) {
                 byte[] buffer = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
@@ -102,9 +170,16 @@ public class VideoController {
             }
         };
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(responseBody);
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(rangeHeader != null ? HttpStatus.PARTIAL_CONTENT : HttpStatus.OK)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .contentLength(contentLength)
+                .contentType(MediaType.parseMediaType("video/mp4"));
+
+        if (rangeHeader != null) {
+            builder.header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize);
+        }
+
+        return builder.body(responseBody);
     }
 }

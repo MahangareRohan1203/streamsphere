@@ -38,6 +38,11 @@ public class Video {
 
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "minimum_subscription_tier")
+    @Builder.Default
+    private SubscriptionTier minimumSubscriptionTier = SubscriptionTier.FREE;
+
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VideoResolution> resolutions;
 

@@ -13,6 +13,7 @@ export type VideoResponse = {
   rawVideoUrl: string;
   status: string;
   createdAt: string;
+  minimumSubscriptionTier: 'FREE' | 'PREMIUM' | 'GOLD';
   resolutions: VideoResolution[];
 };
 
@@ -39,7 +40,7 @@ export const videoApi = api.injectEndpoints({
     getVideos: builder.query<PaginatedResponse<VideoResponse>, VideoQueryParams | void>({
       query: (params) => ({
         url: '/api/videos',
-        params: params || {},
+        params: params || { page: 0, size: 10 },
       }),
       providesTags: ['Video'],
     }),

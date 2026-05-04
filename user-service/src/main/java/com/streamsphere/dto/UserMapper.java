@@ -11,9 +11,11 @@ public class UserMapper {
             return null;
         }
         return UserResponse.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .currentTier(user.getCurrentTier() != null ? user.getCurrentTier().name() : null)
                 .password(includePassword ? user.getPassword() : null)
                 .build();
     }
