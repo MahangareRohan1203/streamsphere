@@ -72,4 +72,36 @@ class VideoServiceTest {
         verify(videoRepository).save(any(Video.class));
         verify(kafkaTemplate).send(eq("video-events"), eq("1"), any(VideoUploadedEvent.class));
     }
+
+    @Test
+    void getVideo_NotFound_ThrowsException() {
+        // Arrange
+        when(videoRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> videoService.getVideo(1L));
+        assertEquals("Video not found", exception.getMessage());
+    }
+
+    @Test
+    void uploadVideo_StorageFailure_ThrowsException() throws Exception {
+        // Arrange
+        when(storageService.uploadFile(anyString(), anyString(), eq(mockFile)))
+                .thenThrow(new RuntimeException("MinIO upload failed"));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> videoService.uploadVideo("Title", "Desc", mockFile));
+        verify(videoRepository, never()).save(any(Video.class));
+        verify(kafkaTemplate, never()).send(anyString(), anyString(), any());
+    }
+
+    @Test
+    void streamVideo_FileNotFound_ThrowsException() throws Exception {
+        // Arrange
+        when(storageService.downloadFile(anyString(), anyString()))
+                .thenThrow(new RuntimeException("File not found in storage"));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> videoService.streamVideo("bucket", "file"));
+    }
 }

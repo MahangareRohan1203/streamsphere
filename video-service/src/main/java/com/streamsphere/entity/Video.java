@@ -1,12 +1,10 @@
 package com.streamsphere.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -44,7 +42,10 @@ public class Video {
     private SubscriptionTier minimumSubscriptionTier = SubscriptionTier.FREE;
 
     @OneToMany(mappedBy = "video", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VideoResolution> resolutions;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @Builder.Default
+    private List<VideoResolution> resolutions = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

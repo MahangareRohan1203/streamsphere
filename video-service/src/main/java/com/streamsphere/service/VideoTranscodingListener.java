@@ -10,12 +10,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 
 @Component
 @RequiredArgsConstructor
@@ -31,6 +31,7 @@ public class VideoTranscodingListener {
     private static final String PROCESSED_BUCKET = "processed-videos";
 
     @KafkaListener(topics = "video-events", groupId = "video-processing-group")
+    @Transactional
     public void handleVideoUploaded(VideoUploadedEvent event) {
         log.info("Received video uploaded event for video id: {}", event.getVideoId());
 
@@ -47,7 +48,7 @@ public class VideoTranscodingListener {
             }
 
             String[] resolutions = {"1080p", "720p", "480p"};
-            video.setResolutions(new ArrayList<>());
+            video.getResolutions().clear();
 
             for (String resolution : resolutions) {
                 log.info("Transcoding video {} to {}", video.getId(), resolution);

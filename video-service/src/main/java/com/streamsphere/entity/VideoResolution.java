@@ -1,10 +1,7 @@
 package com.streamsphere.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "video_resolutions")
@@ -20,6 +17,8 @@ public class VideoResolution {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "video_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Video video;
 
     @Column(nullable = false)
